@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>चैप्टर प्रश्न-उत्तर</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;700&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EAF0F7; --card:#FFFFFF; --ink:#1A2745; --muted:#5B6885;
+  --line:#C9D6EA; --accent:#E8590C; --accent-soft:#FFE8D9; --ok:#1F7A4D;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Noto Sans Devanagari',system-ui,sans-serif;line-height:1.7;
+  padding:16px 14px 48px;}
+.wrap{max-width:720px;margin:0 auto}
+h1{font-family:'Tiro Devanagari Hindi',serif;font-weight:400;font-size:30px;line-height:1.3;margin:8px 0 4px}
+.sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+.panel{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:10px;padding:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.full{grid-column:1/-1}
+label{display:block;font-size:14px;font-weight:500;margin-bottom:4px}
+select,input{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+select:focus,input:focus,button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+button.go{margin-top:14px;width:100%;font:inherit;font-weight:700;font-size:17px;padding:12px;border:0;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer}
+button.go:disabled{opacity:.6}
+#status{margin:18px 2px 0;color:var(--muted)}
+#status.err{color:#B42318}
+.chap{margin-top:22px}
+.chead{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.chead h2{font-family:'Tiro Devanagari Hindi',serif;font-weight:400;font-size:23px;margin:0}
+.chead span{color:var(--muted);font-size:14px}
+.qa{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.q{display:flex;gap:10px;padding:12px 14px;background:#F3F7FD;border-bottom:1px solid var(--line);font-weight:700}
+.q .n{flex:none;min-width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;text-align:center;line-height:28px;font-size:14px}
+.q .t{flex:1;white-space:pre-wrap}
+.mk{flex:none;align-self:flex-start;background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:0 10px;font-size:13px;line-height:26px;white-space:nowrap}
+.a{padding:12px 14px 14px;white-space:pre-wrap;
+  background-image:repeating-linear-gradient(transparent 0,transparent 27px,#E3EBF6 27px,#E3EBF6 28px);line-height:28px}
+.tot{margin-top:4px;color:var(--ok);font-weight:500;font-size:14px}
+@media (max-width:480px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>चैप्टर के प्रश्न-उत्तर</h1>
+  <p class="sub">अपना बोर्ड, मीडियम, क्लास, किताब और चैप्टर का नाम भरें।</p>
+
+  <div class="panel">
+    <div class="grid">
+      <div><label for="board">बोर्ड</label>
+        <select id="board">
+          <option>CBSE</option><option>UP Board</option><option>MP Board</option>
+          <option>Bihar Board</option><option>Rajasthan Board</option><option>ICSE</option><option>अन्य</option>
+        </select></div>
+      <div><label for="medium">मीडियम</label>
+        <select id="medium"><option>हिंदी</option><option>English</option></select></div>
+      <div class="full"><label for="cls">क्लास</label><select id="cls"></select></div>
+      <div class="full"><label for="book">किताब का नाम</label><input id="book" placeholder="जैसे: विज्ञान, गणित, क्षितिज"></div>
+      <div class="full"><label for="chapter">चैप्टर का नाम</label><input id="chapter" placeholder="जैसे: प्रकाश"></div>
+    </div>
+    <button class="go" id="go">प्रश्न-उत्तर देखें</button>
+  </div>
+
+  <div id="status"></div>
+  <div id="out"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyBmLqvofpxrEoIBmBoHlssG6Alau1N3ruw",
+  authDomain: "psb-studio.firebaseapp.com",
+  databaseURL: "https://psb-studio-default-rtdb.firebaseio.com",
+  projectId: "psb-studio",
+  storageBucket: "psb-studio.firebasestorage.app",
+  messagingSenderId: "703528049927",
+  appId: "1:703528049927:web:cd7968fdc66eb9b427f9a2",
+  measurementId: "G-TW8ST3RVF3"
+});
+const db = getDatabase(app);
+
+// कुंजी बनाने का तरीका — एडमिन ऐप में भी यही है
+const norm = s => String(s).trim().toLowerCase().replace(/[.#$\[\]\/]/g,'').replace(/\s+/g,'_');
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+for (let i = 1; i <= 12; i++) $('cls').insertAdjacentHTML('beforeend', `<option value="${i}">कक्षा ${i}</option>`);
+
+function setStatus(t, err){ $('status').textContent = t; $('status').className = err ? 'err' : ''; }
+
+$('go').addEventListener('click', async () => {
+  const book = $('book').value.trim(), chapter = $('chapter').value.trim();
+  if (!book || !chapter) { setStatus('किताब और चैप्टर का नाम भरें।', true); return; }
+  const btn = $('go'); btn.disabled = true; $('out').innerHTML = ''; setStatus('खोज रहे हैं…');
+  try {
+    const path = `qa/${norm($('board').value)}/${norm($('medium').value)}/${$('cls').value}`;
+    const snap = await get(ref(db, path));
+    const nb = norm(book), nc = norm(chapter);
+    const found = [];
+    if (snap.exists()) {
+      const books = snap.val();
+      for (const bk in books) {
+        if (!(bk.includes(nb) || nb.includes(bk))) continue;
+        for (const ck in books[bk]) {
+          if (!(ck.includes(nc) || nc.includes(ck))) continue;
+          const ch = books[bk][ck];
+          const items = Object.values(ch.items || {}).sort((a,b) => (a.t||0)-(b.t||0));
+          if (items.length) found.push({ bookName: ch.bookName || bk, chapterName: ch.chapterName || ck, items });
+        }
+      }
+    }
+    if (!found.length) { setStatus('इस चैप्टर के प्रश्न-उत्तर अभी नहीं मिले। नाम की वर्तनी जाँचें, या थोड़ी देर बाद फिर देखें।', true); return; }
+    setStatus('');
+    $('out').innerHTML = found.map(c => {
+      const total = c.items.reduce((s,x) => s + (Number(x.m)||0), 0);
+      return `<section class="chap">
+        <div class="chead"><h2>${esc(c.chapterName)}</h2><span>${esc(c.bookName)} · ${c.items.length} प्रश्न</span></div>
+        ${c.items.map((x,i) => `<article class="qa">
+          <div class="q"><span class="n">${i+1}</span><span class="t">${esc(x.q)}</span>${x.m!==''&&x.m!=null?`<span class="mk">${esc(x.m)} अंक</span>`:''}</div>
+          <div class="a">${esc(x.a)}</div></article>`).join('')}
+        ${total ? `<div class="tot">कुल अंक: ${total}</div>` : ''}
+      </section>`;
+    }).join('');
+  } catch (e) {
+    setStatus('डेटा नहीं खुल पाया। इंटरनेट जाँचें और फिर कोशिश करें।', true);
+    console.error(e);
+  } finally { btn.disabled = false; }
+});
+</script>
+</body>
+</html>
